@@ -38,40 +38,86 @@ class PriceCalculatorSpecTest {
         calculator = new PriceCalculator();
     }
 
-    // -----------------------------------------------------------------------
-    // TODO: Write your tests below.
-    //
-    // EXAMPLE STRUCTURE (replace with real cases):
-    //
-    // /** Partition: zero base price — result must always be 0 regardless of rates */
-    // @Test
-    // void zeroPriceAlwaysReturnsZero() {
-    //     assertThat(calculator.calculate(0, 20, 10)).isEqualTo(0.0);
-    // }
-    //
-    // /** Boundary: discountRate at lower bound (0%) — no reduction applied */
-    // @Test
-    // void discountRateZeroMeansNoDiscount() {
-    //     double result = calculator.calculate(100, 0, 0);
-    //     assertThat(result).isEqualTo(100.0);
-    // }
-    //
-    // /** Boundary: discountRate at upper bound (100%) — full discount wipes price to 0 */
-    // @Test
-    // void discountRateHundredMeansFullDiscount() {
-    //     double result = calculator.calculate(100, 100, 0);
-    //     assertThat(result).isEqualTo(0.0);
-    // }
-    //
-    // /** Partition: typical values — check formula correctness */
-    // @ParameterizedTest(name = "base={0}, disc={1}%, tax={2}% => {3}")
-    // @CsvSource({
-    //     "100.0, 10.0, 20.0, 108.0",
-    //     "200.0,  0.0, 10.0, 220.0",
-    // })
-    // void typicalValues(double base, double disc, double tax, double expected) {
-    //     assertThat(calculator.calculate(base, disc, tax)).isCloseTo(expected, within(0.001));
-    // }
-    // -----------------------------------------------------------------------
+     // EXAMPLE STRUCTURE (replace with real cases):
+
+     /** Boundary: zero base price - the result must always be 0.0 regardless of discount and tax rates */
+     @Test
+     void zeroPriceAlwaysReturnsZero() {
+         double basePrice = 0.0;
+         // discount rate can be anything
+         double discountRate = 10;
+         // tax rate can be anything
+         double taxRate = 5;
+
+         assertThat(calculator.calculate(basePrice, discountRate, taxRate)).isEqualTo(0.0);
+     }
+
+     /** Boundary: discountRate is 100% - full discount wipes price to 0.0
+      * tax should not increase the price if the item is free */
+     @Test
+     void discountRateHundredMeansFullDiscount() {
+         // base price can be anything
+         double basePrice = 50.0;
+         double discountRate = 100;
+         // tax rate can be anything
+         double taxRate = 5;
+
+         double result = calculator.calculate(basePrice, discountRate, taxRate);
+
+         assertThat(result).isEqualTo(0.0);
+     }
+
+     /** Boundary: discountRate is 0% - no discount is applied, only tax should be added to the base price */
+     @Test
+     void discountRateZeroMeansNoDiscount() {
+         double basePrice = 150.0;
+         double discountRate = 0;
+         double taxRate = 10;
+
+         double result = calculator.calculate(basePrice, discountRate, taxRate);
+
+         assertThat(result).isEqualTo(165.0);
+     }
+
+    /** Boundary: taxRate is 0% - no tax rate is applied, only discount should be effect the base price */
+    @Test
+    void taxRateZeroMeansNoTax() {
+        double basePrice = 100.0;
+        double discountRate = 50;
+        double taxRate = 0;
+
+        double result = calculator.calculate(basePrice, discountRate, taxRate);
+
+        assertThat(result).isEqualTo(50.0);
+    }
+
+    /** Boundary: base price exceeds max double value, so it should be infinite */
+    @Test
+    void exceedingMaxDoubleReturnsInfinity() {
+        double basePrice = Double.MAX_VALUE;
+        double discountRate = 0;
+        double taxRate = 100;
+
+        double result = calculator.calculate(basePrice, discountRate, taxRate);
+        assertThat(result).isInfinite();
+    }
+
+
+     /** Partitions & Boundaries covered for nominal values
+      *  Checks regular calculation formulas with various rates */
+     @ParameterizedTest(name = "base={0}, disc={1}%, tax={2}% => expected={3}")
+     @CsvSource({
+         "100.0, 10.0, 20.0, 108.0",
+         "200.0,  0.0, 10.0, 220.0",
+         "9999999.9, 10.0, 100.0, 17999999.82",
+         "0.0, 0.0, 100.0, 0.0",
+         "0.0, 0.0, 0.0, 0.0",
+         "520.0, 0.0, 0.0, 520.0"
+
+     })
+     void typicalValues(double base, double disc, double tax, double expected) {
+         assertThat(calculator.calculate(base, disc, tax)).isCloseTo(expected, within(0.001));
+     }
+
 
 }
