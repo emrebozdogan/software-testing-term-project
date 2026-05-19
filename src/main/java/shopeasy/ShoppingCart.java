@@ -33,16 +33,32 @@ public class ShoppingCart {
      */
     public void addItem(Product product, int quantity) {
         // TODO (Task 3): add assert pre-condition here
+        // pre-condition: product != null, quantity > 0
+        assert product != null && quantity > 0 : "Pre-condition: product must not be null and quantity must be > 0";
+
+        // saving first item number for post-condition in for loop
+        int initialCount = itemCount();
 
         for (CartItem item : items) {
             if (item.getProduct().getId().equals(product.getId())) {
                 item.setQuantity(item.getQuantity() + quantity);
                 // TODO (Task 3): add assert post-condition here
+                // post-condition: itemCount() >= previous count
+                assert itemCount() >= initialCount : "Post-condition: distinct items count must be >= previous count";
+
+                // invariant: total() >= 0 after any operation
+                assert total() >= 0 : "Invariant: total must remain >= 0";
+
                 return;
             }
         }
         items.add(new CartItem(product, quantity));
         // TODO (Task 3): add assert post-condition here
+        // post-condition: itemCount() >= previous count
+        assert itemCount() >= initialCount : "Post-condition: distinct items count must be >= previous count";
+
+        // invariant: total() >= 0 after any operation
+        assert total() >= 0 : "Invariant: total must remain >= 0";
     }
 
     /**
@@ -87,11 +103,18 @@ public class ShoppingCart {
      */
     public double applyDiscount(double discountRate) {
         // TODO (Task 3): add assert pre-condition here
+        // pre-condition: 0 < discountRate <- 100
+        assert discountRate >= 0 && discountRate <= 100 : "Pre-condition: discountRate must be between 0 and 100";
 
         double rawTotal = total();
         double discounted = rawTotal - (rawTotal * discountRate / 100);
 
         // TODO (Task 3): add assert post-condition here
+        // post-condition: returned value <= total() when discountRate > 0
+        assert !(discountRate > 0) || (discounted <= rawTotal) : "Post-condition: discounted total cannot be greater than raw total";
+
+        // invariant: total() >= 0 after any operation
+        assert total() >= 0 : "Invariant: total must remain >= 0";
         return discounted;
     }
 
