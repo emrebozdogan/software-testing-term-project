@@ -69,4 +69,60 @@ class ShopEasyPropertyTest {
     // }
     // -----------------------------------------------------------------------
 
+    private final PriceCalculator calculator = new PriceCalculator();
+
+    // property 1: identity
+    // what it means: 0 discount and 0 tax returns the exact base price.
+    // bugs caught: catches accidental math errors like hardcoded additions.
+    @Property
+    void identityProperty(@ForAll @DoubleRange(min = 0.0, max = 10000.0) double basePrice) {
+        double result = calculator.calculate(basePrice, 0.0, 0.0);
+        assertThat(result).isEqualTo(basePrice);
+    }
+
+    // property 2: boundedness
+    // what it means: final price is always between 0 and max possible price with tax.
+    // bugs caught: catches negative prices or applying tax/discount in the wrong direction.
+    @Property
+    void boundednessProperty(
+            @ForAll @DoubleRange(min = 0.0, max = 1000.0) double base,
+            @ForAll("validPercentages") double discount,
+            @ForAll("validPercentages") double tax) {
+
+        double result = calculator.calculate(base, discount, tax);
+
+        assertThat(result).isGreaterThanOrEqualTo(0.0);
+        double maxPossible = base * (1.0 + (tax / 100.0));
+        // adding 0.000001 for floating-point precision
+        assertThat(result).isLessThanOrEqualTo(maxPossible + 0.000001);
+    }
+
+    // custom provide method
+    @Provide
+    Arbitrary<Double> validPercentages() {
+        return Arbitraries.doubles().between(0.0, 100.0);
+    }
+
+    // property 3: cart commutativity
+    // what it means: adding item a then b gives the same total as adding b then a.
+    // bugs caught: catches state-dependent bugs where the order of operations wrongly affects total.
+    @Property
+    void cartCommutativity(
+            @ForAll @IntRange(min = 1, max = 50) int qty1,
+            @ForAll @IntRange(min = 1, max = 50) int qty2) {
+
+        Product p1 = new Product("P1", "Item A", 10.0, 100);
+        Product p2 = new Product("P2", "Item B", 20.0, 100);
+
+        ShoppingCart cart1 = new ShoppingCart();
+        cart1.addItem(p1, qty1);
+        cart1.addItem(p2, qty2);
+
+        ShoppingCart cart2 = new ShoppingCart();
+        cart2.addItem(p2, qty2);
+        cart2.addItem(p1, qty1);
+
+        assertThat(cart1.total()).isEqualTo(cart2.total());
+        assertThat(cart1.itemCount()).isEqualTo(cart2.itemCount());
+    }
 }
