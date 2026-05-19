@@ -69,4 +69,34 @@ class ContractTest {
     // }
     // -----------------------------------------------------------------------
 
+    @Test
+    void addItem_negativeQuantity_shouldViolatePreCondition() {
+        // pre-condition: quantity > 0
+        assertThatThrownBy(() -> cart.addItem(product, -2)).isInstanceOf(AssertionError.class);
+    }
+
+    @Test
+    void applyDiscount_over100Percent_shouldViolatePreCondition() {
+        // pre-condition: 0 <= discountRate <= 100
+        assertThatThrownBy(() -> cart.applyDiscount(120.0)).isInstanceOf(AssertionError.class);
+    }
+
+    @Test
+    void calculatePrice_negativeBasePrice_shouldViolatePreCondition() {
+        // pre-condition: basePrice >= 0
+        assertThatThrownBy(() -> calculator.calculate(-50.0, 10.0, 18.0)).isInstanceOf(AssertionError.class);
+    }
+
+    @Test
+    void calculatePrice_invalidTaxRate_shouldViolatePreCondition() {
+        // pre-condition: 0 <= taxRate <= 100
+        assertThatThrownBy(() -> calculator.calculate(100.0, 15.0, 150.0)).isInstanceOf(AssertionError.class);
+    }
+
+    @Test
+    void calculatePrice_validInputs_shouldNotThrow() {
+        // valid inputs
+        assertThatCode(() -> calculator.calculate(100.0, 10.0, 18.0)).doesNotThrowAnyException();
+    }
+
 }
