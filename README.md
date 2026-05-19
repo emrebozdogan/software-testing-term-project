@@ -76,10 +76,10 @@ See the project assignment document for full task descriptions and grading crite
 
 ## Submission Checklist
 
-- [ ] All 5 test files contain meaningful, runnable tests
-- [ ] `mvn test` passes with no failures
-- [ ] JaCoCo screenshot saved to `report/jacoco-screenshot.png`
-- [ ] Reflection report saved to `report/reflection.pdf`
-- [ ] `AUTHORS.md` filled in
-- [ ] Git history has at least one commit per task
-- [ ] No IDE files committed (`.idea/`, `*.iml`)
+- [x] All 5 test files contain meaningful, runnable tests
+- [x] `mvn test` passes with no failures
+- [x] JaCoCo screenshot saved to `report/jacoco-screenshot.png`
+- [x] Reflection report saved to `report/reflection.pdf`
+- [x] `AUTHORS.md` filled in
+- [x] Git history has at least one commit per task
+- [x] No IDE files committed (`.idea/`, `*.iml`)
