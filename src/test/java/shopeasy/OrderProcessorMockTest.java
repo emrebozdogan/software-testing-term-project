@@ -79,4 +79,61 @@ class OrderProcessorMockTest {
     // }
     // -----------------------------------------------------------------------
 
+    @Test
+    void process_allConditionsMet_returnsOrderObject() {
+        // inventory is available and payment is successful
+        cart.addItem(widget, 3);
+
+        when(inventoryService.isAvailable(widget, 3)).thenReturn(true);
+        when(paymentGateway.charge("customer-789", 75.0)).thenReturn(true);
+
+        Order result = orderProcessor.process("customer-789", cart);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getCustomerId()).isEqualTo("customer-789");
+        assertThat(result.getTotal()).isEqualTo(75.0);
+
+        verify(paymentGateway).charge("customer-789", 75.0);
+    }
+
+    @Test
+    void process_inventoryUnavailable_returnsNullAndAbortsPayment() {
+        // item out of stock, payment should not be triggered
+        cart.addItem(widget, 10);
+
+        when(inventoryService.isAvailable(widget, 10)).thenReturn(false);
+        Order result = orderProcessor.process("customer-789", cart);
+
+        assertThat(result).isNull();
+
+        verify(paymentGateway, never()).charge(anyString(), anyDouble());
+    }
+
+    @Test
+    void process_paymentDeclined_returnsNull() {
+        // inventory ok but payment fails
+        cart.addItem(widget, 1);
+
+        when(inventoryService.isAvailable(widget, 1)).thenReturn(true);
+        when(paymentGateway.charge("customer-789", 25.0)).thenReturn(false);
+
+        Order result = orderProcessor.process("customer-789", cart);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void process_partialQuantityFailure_returnsNull() {
+        // when specific quantity check fails
+        cart.addItem(widget, 50);
+
+        when(inventoryService.isAvailable(widget, 50)).thenReturn(false);
+
+        Order result = orderProcessor.process("customer-789", cart);
+
+        assertThat(result).isNull();
+
+        verify(paymentGateway, never()).charge(anyString(), anyDouble());
+    }
+
 }
