@@ -56,4 +56,116 @@ class ShoppingCartStructuralTest {
     // HINT: Run `mvn test` after every few tests to see coverage progress.
     // -----------------------------------------------------------------------
 
+    @Test
+    void addItem_NewProduct_AddsToCart() {
+        cart.addItem(apple, 2);
+
+        assertThat(cart.itemCount()).isEqualTo(1);
+        assertThat(cart.total()).isEqualTo(3);
+    }
+
+    @Test
+    void addItem_ExistingProduct_UpdatesQuantity() {
+        cart.addItem(apple, 2);
+        // same product diff quantity hits if condition
+        cart.addItem(apple, 3);
+
+        assertThat(cart.itemCount()).isEqualTo(1);
+        assertThat(cart.total()).isEqualTo(7.50);
+    }
+
+    @Test
+    void total_EmptyCart_ReturnsZero() {
+        double total = cart.total();
+
+        assertThat(total).isEqualTo(0.0);
+    }
+
+    @Test
+    void removeItem_ProductFound_RemovesFromCart() {
+        cart.addItem(apple, 4);
+        cart.addItem(banana, 3);
+        // remove apple using its id
+        cart.removeItem(apple.getId());
+
+        assertThat(cart.itemCount()).isEqualTo(1);
+        assertThat(cart.total()).isCloseTo(2.4, within(0.001));
+    }
+
+    @Test
+    void removeItem_ProductNotFound_DoesNothing() {
+        cart.addItem(apple, 2);
+        // remove banana (not exists) using its id
+        cart.removeItem(banana.getId());
+        // get the apple item after removing banana (not exists)
+        String item = cart.getItems().get(0).getProduct().getName();
+
+        assertThat(item).isEqualTo("Apple");
+        assertThat(cart.itemCount()).isEqualTo(1);
+        assertThat(cart.total()).isEqualTo(3);
+    }
+
+    @Test
+    void updateQuantity_ProductFound_UpdatesSuccessfully() {
+        cart.addItem(apple, 2);
+        // update apple's quantity using getId()
+        cart.updateQuantity(apple.getId(), 5);
+
+        assertThat(cart.total()).isEqualTo(7.50);
+    }
+
+    @Test
+    void updateQuantity_ProductNotFound_ThrowsException() {
+        cart.addItem(apple, 1);
+        // update quantity of a product doesn't in the cart
+        assertThatThrownBy(() -> cart.updateQuantity(banana.getId(), 5)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void updateQuantity_InvalidQuantity_ThrowsException() {
+        cart.addItem(apple, 4);
+        // update apple's quantity to 0
+        assertThatThrownBy(() -> cart.updateQuantity(apple.getId(), 0)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void applyDiscount_PositiveDiscount_ReducesTotal() {
+        cart.addItem(apple, 4);
+        // apply 10% discount
+        double total = cart.applyDiscount(10.0);
+
+        assertThat(total).isEqualTo(5.40);
+    }
+
+    @Test
+    void applyDiscount_ZeroDiscount_ReturnsSameTotal() {
+        cart.addItem(apple, 4);
+        // apply 0% discount
+        double total = cart.applyDiscount(0.0);
+
+        assertThat(total).isEqualTo(6.00);
+    }
+
+    @Test
+    void clear_WithItemsInCart_EmptiesTheCart() {
+        cart.addItem(apple, 4);
+        cart.addItem(banana, 2);
+        // delete all items in cart
+        cart.clear();
+
+        assertThat(cart.itemCount()).isEqualTo(0);
+        assertThat(cart.total()).isEqualTo(0.0);
+        assertThat(cart.getItems()).isEmpty();
+    }
+
+    @Test
+    void clear_EmptyCart_RemainsEmpty() {
+        // delete all items in empty cart
+        cart.clear();
+
+        assertThat(cart.itemCount()).isEqualTo(0);
+        assertThat(cart.total()).isEqualTo(0.0);
+        assertThat(cart.getItems()).isEmpty();
+    }
+
 }
